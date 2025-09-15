@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Кейсы 🎁</title>
+  <style>
+    :root{
+      --bg:#0b0f1a;
+      --card:#121726;
+      --accent:#f6c94d;
+      --muted:#9aa3b2;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,#051025 0%, #0b0f1a 100%);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .app{
+      width:100%;
+      max-width:920px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:20px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      text-align:center;
+    }
+
+    header{display:flex;gap:12px;align-items:center;justify-content:center;}
+    header h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:0.6px;
+      color:var(--accent);
+    }
+    header p{margin:0;color:var(--muted);font-size:13px;}
+
+    .cases{
+      display:flex;
+      gap:18px;
+      justify-content:center;
+      margin:22px 0;
+      flex-wrap:wrap;
+    }
+
+    .case {
+      width:130px;
+      height:140px;
+      background:linear-gradient(180deg,#1a2130,#0f1624);
+      border-radius:12px;
+      border:2px solid rgba(255,255,255,0.04);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+      position:relative;
+      user-select:none;
+    }
+    .case:hover{ transform:translateY(-6px); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+    .case.locked{ filter:grayscale(.12); opacity:.98; cursor: pointer; }
+
+    .case .title{ font-weight:600; font-size:16px; color:#fff; margin-bottom:6px; }
+    .case .sub{ font-size:12px; color:var(--muted); }
+
+    .case .badge{
+      position:absolute;
+      top:8px;
+      right:8px;
+      background:linear-gradient(90deg,#ffb84d,#ff7b7b);
+      color:#111;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      box-shadow:0 4px 14px rgba(255,120,80,0.12);
+    }
+
+    #result {
+      margin-top:20px;
+      min-height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:8px;
+    }
+    #result .text{ font-size:18px; color:#dff5dc; }
+    #result .prize{ font-weight:800; color:var(--accent); font-size:20px; }
+
+    .footer{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* button */
+    .btn{
+      margin-top:10px;
+      padding:10px 16px;
+      border-radius:10px;
+      background:linear-gradient(180deg,#1f6bff,#1751d9);
+      color:white;
+      border:0;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 8px 24px rgba(23,81,217,0.18);
+    }
+
+    /* confetti canvas fit */
+    #confetti{
+      pointer-events:none;
+      position:fixed;
+      left:0;top:0;width:100%;height:100%;
+      z-index:999;
+    }
+
+    /* mobile tweaks */
+    @media (max-width:420px){
+      .case{ width:100px; height:120px;}
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="app" role="application" aria-label="Кейсы">
+    <header>
+      <div style="text-align:center">
+        <h1>Кейсы — Открой и получи подарок 🎁</h1>
+        <p>Нажми на любой кейс — результат генерируется локально</p>
+      </div>
+    </header>
+
+    <div class="cases" id="cases">
+      <div class="case" data-id="1" onclick="openCase(1)">
+        <div class="badge">x1</div>
+        <div class="title">Кейс 1</div>
+        <div class="sub">Бюджетный</div>
+      </div>
+
+      <div class="case" data-id="2" onclick="openCase(2)">
+        <div class="badge">x1</div>
+        <div class="title">Кейс 2</div>
+        <div class="sub">Стандарт</div>
+      </div>
+
+      <div class="case" data-id="3" onclick="openCase(3)">
+        <div class="badge">x1</div>
+        <div class="title">Кейс 3</div>
+        <div class="sub">Премиум</div>
+      </div>
+    </div>
+
+    <div id="result" aria-live="polite">
+      <div class="text">Выбери кейс, чтобы открыть.</div>
+    </div>
+
+    <div class="footer">
+      <div>Игра локальная — ничего не сохраняется. Подходит для GitHub Pages / Telegram WebApp.</div>
+      <button class="btn" onclick="resetView()">Сбросить</button>
+    </div>
+  </div>
+
+  <script>
+    // Призы — можно редактировать
+    const PRIZES = [
+      {name: "💎 Редкий Алмаз"},
+      {name: "💰 100 Монет"},
+      {name: "🎟️ Билет Удачи"},
+      {name: "🔥 Эксклюзивный Скин"},
+      {name: "🍀 Удача +10%"},
+      {name: "📦 Большой сундук"},
+      {name: "✨ Ничего (пусто)"},
+      {name: "🎁 Маленький подарок"},
+      {name: "🔮 Загадка"}
+    ];
+
+    const resultDiv = document.getElementById('result');
+    let unlocking = false;
+
+    function randInt(max){
+      return Math.floor(Math.random()*max);
+    }
+
+    function openCase(id){
+      if(unlocking) return;
+      unlocking = true;
+
+      // визуальная подстановка
+      const casesEls = document.querySelectorAll('.case');
+      casesEls.forEach(el => el.style.opacity = '0.5');
+      const chosenEl = document.querySelector(`.case[data-id="${id}"]`);
+      chosenEl.style.opacity = '1';
+      chosenEl.style.transform = 'scale(1.03)';
+
+      // анимация "открывания" — простой текст-таймер
+      let ticks = 0;
+      resultDiv.innerHTML = `<div class="text">Открываем кейс ${id}...</div>`;
+      const spin = setInterval(() => {
+        ticks++;
+        const dots = '.'.repeat(ticks % 4);
+        resultDiv.querySelector('.text').textContent = `Открываем кейс ${id}${dots}`;
+        if(ticks>12){
+          clearInterval(spin);
+          // определяем приз
+          const prize = pickPrizeByCase(id);
+          showPrize(prize);
+          // сброс внешнего вида
+          casesEls.forEach(el => { el.style.opacity='1'; el.style.transform='none'; });
+          unlocking = false;
+        }
+      }, 110);
+    }
+
+    // Можно сделать вероятность призов в зависимости от кейса
+    function pickPrizeByCase(caseId){
+      // простая логика: premium даёт чуть больше шанса на редкие
+      const base = PRIZES.slice();
+      let pool = [];
+      base.forEach((p, i) => {
+        let weight = 1;
+        if(caseId===2) weight = (i<3?2:1);      // средний кейс: бонус для верхних 3
+        if(caseId===3) weight = (i<4?3:1);      // премиум: бонус для верхних 4
+        for(let k=0;k<weight;k++) pool.push(p);
+      });
+      const idx = randInt(pool.length);
+      return pool[idx];
+    }
+
+    function showPrize(prize){
+      resultDiv.innerHTML = `
+        <div class="text">Поздравляем — вы получили:</div>
+        <div class="prize">${prize.name}</div>
+      `;
+      // лёгкий эффект confetti
+      startConfetti();
+      // прекратить через 3 секунды
+      setTimeout(stopConfetti, 3000);
+    }
+
+    function resetView(){
+      resultDiv.innerHTML = `<div class="text">Выбери кейс, чтобы открыть.</div>`;
+    }
+
+    // --- минимальный конфетти (canvas) ---
+    const confettiCanvas = document.getElementById('confetti');
+    const ctx = confettiCanvas.getContext('2d');
+    let W = confettiCanvas.width = window.innerWidth;
+    let H = confettiCanvas.height = window.innerHeight;
+    window.addEventListener('resize', () => { W = confettiCanvas.width = window.innerWidth; H = confettiCanvas.height = window.innerHeight; });
+
+    let confettiActive = false;
+    const pieces = [];
+
+    function random(min,max){ return Math.random()*(max-min)+min; }
+
+    function startConfetti(){
+      confettiActive = true;
+      for(let i=0;i<80;i++){
+        pieces.push({
+          x: random(0,W),
+          y: random(-H,0),
+          w: random(6,12),
+          h: random(8,14),
+          speed: random(2,6),
+          rotation: random(0,360),
+          velRot: random(-6,6),
+          color: `hsl(${Math.floor(random(0,360))} 80% 60%)`
+        });
+      }
+      if(!animRunning) runConfetti();
+    }
+
+    function stopConfetti(){
+      confettiActive = false;
+      // очистим через небольшой таймаут
+      setTimeout(()=> pieces.length = 0, 800);
+    }
+
+    let animRunning = false;
+    function runConfetti(){
+      animRunning = true;
+      (function frame(){
+        ctx.clearRect(0,0,W,H);
+        for(let i=0;i<pieces.length;i++){
+          const p = pieces[i];
+          p.y += p.speed;
+          p.x += Math.sin(p.y*0.01)*1.5;
+          p.rotation += p.velRot;
+          ctx.save();
+          ctx.translate(p.x,p.y);
+          ctx.rotate(p.rotation * Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          ctx.restore();
+          if(p.y > H + 30) {
+            // повторно закидываем если confettiActive
+            if(confettiActive){
+              p.y = random(-100, -10);
+              p.x = random(0,W);
+            } else {
+              // удаляем кусок
+              pieces.splice(i,1);
+              i--;
+            }
+          }
+        }
+        if(pieces.length>0) requestAnimationFrame(frame);
+        else animRunning = false;
+      })();
+    }
+
+    // -- безопасность: disable touch/drag zoom in WebApp --
+    document.addEventListener('touchmove', function(e){ /* allow normal */ }, {passive:true});
+  </script>
+</body>
+</html>
