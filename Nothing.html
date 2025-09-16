@@ -1,104 +1,27 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>CaseA 🎁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script type="module">
-    // ===== Firebase SDK =====
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-    const firebaseConfig = {
-  apiKey: "AIzaSyC9dXMaV_L0lFddoL_Ksz0ZtD6c-sVHWDg",
-  authDomain: "case-b2d98.firebaseapp.com",
-  databaseURL: "https://case-b2d98-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "case-b2d98",
-  storageBucket: "case-b2d98.firebasestorage.app",
-  messagingSenderId: "402247491014",
-  appId: "1:402247491014:web:a5015a1e75c177d15326c7",
-  measurementId: "G-6T04XJWNN7"
-};
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // ===== Telegram WebApp данные =====
-    const tg = window.Telegram.WebApp;
-    const user = tg.initDataUnsafe.user;
-    const userId = user.id;
-
-    // ===== Инициализация пользователя =====
-    async function initUser() {
-      const userRef = ref(db, `users/${userId}`);
-      const snapshot = await get(userRef);
-
-      if (!snapshot.exists()) {
-        await set(userRef, {
-          name: user.first_name,
-          stars: 5, // начальные звёзды
-          lastItem: "",
-          lastPurchaseDate: ""
-        });
-      }
-
-      updateUI();
-    }
-
-    // ===== Обновление интерфейса =====
-    async function updateUI() {
-      const snapshot = await get(ref(db, `users/${userId}`));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        document.getElementById("userName").innerText =
-          user.first_name + (user.last_name ? " " + user.last_name : "");
-        if (user.photo_url) {
-          document.getElementById("userPhoto").src = user.photo_url;
-        }
-        document.getElementById("stars").innerText = data.stars;
-        document.getElementById("lastItem").innerText = data.lastItem || "-";
-      }
-    }
-
-    // ===== Функция покупки кейса за 1 звезду =====
-    async function buyCase() {
-      const userRef = ref(db, `users/${userId}`);
-      const snapshot = await get(userRef);
-      const data = snapshot.val();
-
-      if (data.stars >= 1) {
-        const rewards = ["💎 Diamond", "⭐ Gold", "🍀 Lucky Clover"];
-        const reward = rewards[Math.floor(Math.random() * rewards.length)];
-
-        await update(userRef, {
-          stars: data.stars - 1,
-          lastItem: reward,
-          lastPurchaseDate: new Date().toISOString()
-        });
-
-        alert(`🎉 Вы открыли кейс и получили: ${reward}`);
-        updateUI();
-      } else {
-        alert("Недостаточно звёзд для открытия кейса!");
-      }
-    }
-
-    window.buyCase = buyCase;
-    window.onload = initUser;
-
-  </script>
   <style>
-    body { font-family:sans-serif; text-align:center; padding:20px; background:#1c1c1c; color:white; }
-    img { border-radius:50%; width:100px; height:100px; }
-    button { padding:10px 20px; font-size:16px; background:#3390ec; color:white; border:none; border-radius:10px; cursor:pointer; margin-top:10px; }
+    body { background:#1c1c1c; color:white; text-align:center; padding:20px; font-family:sans-serif; }
+    button { padding:12px 20px; font-size:16px; background:#3390ec; color:white; border:none; border-radius:10px; cursor:pointer; margin-top:20px; }
     button:hover { background:#1c86ee; }
   </style>
 </head>
 <body>
-  <h2 id="userName">Загрузка...</h2>
-  <img id="userPhoto" alt="Фото">
-  <p>Звёзды: <span id="stars">0</span></p>
-  <p>Последний кейс: <span id="lastItem">-</span></p>
-  <button onclick="buyCase()">Открыть кейс за 1 ⭐</button>
+  <h2>🎁 Case Opening App</h2>
+  <p>Buy a case for <b>1 Telegram Star</b> and win a random reward!</p>
+  <button onclick="buyCase()">Buy Case ⭐</button>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+
+    async function buyCase() {
+      // Call /buy command of your bot
+      tg.openTelegramLink("https://t.me/YOUR_BOT_USERNAME?start=buy_case");
+    }
+  </script>
 </body>
 </html>
