@@ -5,9 +5,73 @@
   <title>CaseA 🎁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { background:#1c1c1c; color:white; text-align:center; padding:20px; font-family:sans-serif; }
-    button { padding:12px 20px; font-size:16px; background:#3390ec; color:white; border:none; border-radius:10px; cursor:pointer; margin-top:20px; }
-    button:hover { background:#1c86ee; }
+    body {
+      background: #1c1c1c;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-family: sans-serif;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #3390ec;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { background: #1c86ee; }
+
+    /* контейнер с наградами */
+    .roulette {
+      margin: 30px auto;
+      width: 260px;
+      height: 80px;
+      border: 2px solid #3390ec;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      background: #222;
+    }
+    .items {
+      display: flex;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      transition: left 3s cubic-bezier(.17,.67,.83,.67);
+    }
+    .item {
+      flex: 0 0 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      color: #fff;
+    }
+    .price {
+      font-size: 12px;
+      color: #ccc;
+    }
+    .highlight {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 100%;
+      border: 2px solid yellow;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -15,13 +79,54 @@
   <p>Buy a case for <b>1 Telegram Star</b> and win a random reward!</p>
   <button onclick="buyCase()">Buy Case ⭐</button>
 
+  <div class="roulette">
+    <div class="items" id="items">
+      <div class="item">💎<div class="price">100⭐</div></div>
+      <div class="item">🍫<div class="price">10⭐</div></div>
+      <div class="item">🎧<div class="price">50⭐</div></div>
+      <div class="item">📱<div class="price">200⭐</div></div>
+      <div class="item">🎮<div class="price">150⭐</div></div>
+      <div class="item">⭐<div class="price">5⭐</div></div>
+    </div>
+    <div class="highlight"></div>
+  </div>
+
+  <div id="result"></div>
+
   <script>
     const tg = window.Telegram.WebApp;
+    const items = document.getElementById("items");
+    const prizes = [
+      { emoji: "💎", name: "Diamond", price: "100⭐" },
+      { emoji: "🍫", name: "Chocolate", price: "10⭐" },
+      { emoji: "🎧", name: "Headphones", price: "50⭐" },
+      { emoji: "📱", name: "Smartphone", price: "200⭐" },
+      { emoji: "🎮", name: "Gamepad", price: "150⭐" },
+      { emoji: "⭐", name: "1 Star", price: "5⭐" }
+    ];
 
-    async function buyCase() {
-      // Call /buy command of your bot
-      tg.openTelegramLink("https://t.me/Giftlandiabot?start=buy_case");
+    function buyCase() {
+      // выбираем случайный приз
+      let winIndex = Math.floor(Math.random() * prizes.length);
+
+      // ширина одного item = 80px
+      let offset = -(winIndex * 80) + (260/2 - 40);
+
+      // сброс
+      items.style.transition = "none";
+      items.style.left = "0px";
+
+      setTimeout(() => {
+        items.style.transition = "left 3s cubic-bezier(.17,.67,.83,.67)";
+        items.style.left = offset + "px";
+      }, 50);
+
+      setTimeout(() => {
+        let prize = prizes[winIndex];
+        document.getElementById("result").innerHTML =
+          `🎉 You won: ${prize.emoji} <b>${prize.name}</b> (${prize.price})`;
+      }, 3200);
     }
   </script>
 </body>
-</html>
+  </html>
