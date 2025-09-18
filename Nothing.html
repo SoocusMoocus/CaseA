@@ -106,27 +106,34 @@
     ];
 
     function buyCase() {
-      // выбираем случайный приз
-      let winIndex = Math.floor(Math.random() * prizes.length);
+  // выбираем случайный приз
+  let winIndex = Math.floor(Math.random() * prizes.length);
 
-      // ширина одного item = 80px
-      let offset = -(winIndex * 80) + (260/2 - 40);
+  // ширина одного item = 80px
+  const itemWidth = 80;
+  const visibleCenter = 260 / 2 - itemWidth / 2;
 
-      // сброс
-      items.style.transition = "none";
-      items.style.left = "0px";
+  // добавим несколько "кругов" перед финальной остановкой
+  let extraRounds = 3; // сколько раз прокрутит ленту
+  let offset = -(winIndex * itemWidth) + visibleCenter - (prizes.length * itemWidth * extraRounds);
 
-      setTimeout(() => {
-        items.style.transition = "left 3s cubic-bezier(.17,.67,.83,.67)";
-        items.style.left = offset + "px";
-      }, 50);
+  // сброс позиции
+  items.style.transition = "none";
+  items.style.left = "0px";
 
-      setTimeout(() => {
-        let prize = prizes[winIndex];
-        document.getElementById("result").innerHTML =
-          `🎉 You won: ${prize.emoji} <b>${prize.name}</b> (${prize.price})`;
-      }, 3200);
-    }
+  setTimeout(() => {
+    // плавная анимация
+    items.style.transition = "left 4s cubic-bezier(.17,.67,.83,.99)";
+    items.style.left = offset + "px";
+  }, 50);
+
+  setTimeout(() => {
+    let prize = prizes[winIndex];
+    document.getElementById("result").innerHTML =
+      `🎉 You won: ${prize.emoji} <b>${prize.name}</b> (${prize.price})`;
+  }, 4200);
+      }
+      
   </script>
 </body>
   </html>
